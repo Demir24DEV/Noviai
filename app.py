@@ -1,23 +1,29 @@
 import streamlit as st
-import requests
+import google.generativeai as genai
 
 st.set_page_config(page_title="Novi AI", page_icon="🤖")
-st.title("🤖 Novi AI")
 
-# Basit model bağlantısı
-API_URL = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
-# Token'ı tırnakların içine yapıştır
-HEADERS = {"Authorization": "Bearer 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"}
+# API Anahtarını al
+api_key = st.secrets.get("GEMINI_API_KEY")
 
-if prompt := st.chat_input("Mesajını yaz..."):
+if not api_key:
+    st.error("API Anahtarı 'Secrets' kısmında bulunamadı!")
+    st.stop()
+
+# API Yapılandırması
+try:
+    genai.configure(api_key=api_key)
+    model = genai.GenerativeModel('gemini-1.5-flash')
+except Exception as e:
+    st.error(f"API Konfigürasyon hatası: {e}")
+    st.stop()
+
+# Sohbet kısmı
+if prompt := st.chat_input("Bir şeyler yaz..."):
     st.chat_message("user").markdown(prompt)
     with st.chat_message("assistant"):
         try:
-            response = requests.post(API_URL, headers=HEADERS, json={"inputs": prompt})
-            if response.status_code == 200:
-                cevap = response.json()[0]['generated_text']
-                st.markdown(cevap)
-            else:
-                st.write("Model şu an dinleniyor, lütfen 10 saniye sonra tekrar dene.")
-        except:
-            st.write("Bir hata oluştu, sayfayı yenile.")
+            response = model.generate_content(prompt)
+            st.markdown(response.text)
+        except Exception as e:
+            st.error(f"Model hatası: {e}")
