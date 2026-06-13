@@ -6,7 +6,7 @@ import io
 # Sayfa Ayarları
 st.set_page_config(page_title="Novi AI", page_icon="🤖")
 
-# 👤 SOL TARAF (GİRİŞ ŞEYLERİ VE MENÜ) BURASI kanka:
+# SOL TARAF (GİRİŞ ŞEYLERİ VE MENÜ)
 st.sidebar.markdown("# 🛠️ Novi AI Kontrol Paneli")
 st.sidebar.image("https://cdn-icons-png.flaticon.com/512/4712/4712035.png", width=100)
 
@@ -17,7 +17,6 @@ if "GEMINI_API_KEY" in st.secrets and st.secrets["GEMINI_API_KEY"] != "":
     st.sidebar.success("🔑 Durum: Giriş Yapıldı (Kasa Aktif)")
     st.sidebar.info("🤖 Yapay zeka motoru bağlandı. Sohbet etmeye hazırsın kral!")
 else:
-    # Eğer kasada yoksa elinle girmen için kutu açılır
     API_KEY = st.sidebar.text_input(
         "🔑 Gemini API Anahtarını Gir", 
         type="password", 
@@ -30,9 +29,8 @@ else:
 
 st.sidebar.write("---")
 st.sidebar.markdown("### ⚙️ Sistem Özellikleri")
+st.sidebar.write("• Yapımcı: `Mehmet Emir Akıllı` 👑")
 st.sidebar.write("• Model: `gemini-2.5-flash`")
-st.sidebar.write("• Dil: `Türkçe (tr)`")
-st.sidebar.write("• Seslendirme: `gTTS Aktif`")
 
 # Ana Sayfa Başlığı
 st.title("🤖 Novi AI - Dünyaya Açık Yapay Zeka")
@@ -45,7 +43,7 @@ if API_KEY:
     except Exception as e:
         st.error(f"Bağlantı kurulurken hata oluştu: {e}")
 else:
-    st.info("👈 Sitede sohbet edebilmek için sol taraftaki panelden giriş yapman veya kasaya anahtar eklemen lazım kanka!")
+    st.info("👈 Sitede sohbet edebilmek için sol taraftaki panelden giriş yapman lazım kanka!")
 
 # Hafıza alanlarını açıyoruz
 if "messages" not in st.session_state:
@@ -58,11 +56,11 @@ if "ses_durumu" not in st.session_state:
 col1, col2 = st.columns([4, 1])
 with col2:
     if st.session_state.ses_durumu:
-        if st.button("🟢 Hoparlör: AÇIK 🔊", help="Sadece metin moduna geçmek için tıkla"):
+        if st.button("🟢 Hoparlör: AÇIK 🔊"):
             st.session_state.ses_durumu = False
             st.rerun()
     else:
-        if st.button("🔴 Hoparlör: KAPALI 🔈", help="Sesli yanıt moduna geçmek için tıkla"):
+        if st.button("🔴 Hoparlör: KAPALI 🔈"):
             st.session_state.ses_durumu = True
             st.rerun()
 
@@ -86,15 +84,29 @@ if soru := st.chat_input("Novi AI'a bir şeyler yaz..."):
         # Botun cevap alanı
         with st.chat_message("assistant"):
             with st.spinner("Novi AI düşünüyor..."):
+                
+                # 🎯 MEHMET EMİR AKILLI ÖZEL KOMUT KONTROLÜ BURADA:
+                soru_kucuk = soru.lower()
+                yapimci_sorulari = ["seni kim yaptı", "kim yaptı", "yapımcın kim", "sahibin kim", "seni kim geliştirdi", "seni kim yarattı"]
+                
+                if any(k kelime in soru_kucuk for kelime in yapimci_sorulari):
+                    cevap_metni = "Beni harika, dahi ve süper akıllı bir yazılımcı olan **Mehmet Emir Akıllı** yaptı! O bu sitenin kurucusudur ve onun sayesinde şu an sizinle konuşabiliyorum. Mehmet Emir Akıllı gerçekten çok akıllı ve başarılı biridir! 👑🚀"
+                else:
+                    # Eğer yapımcı sorusu değilse normal yapay zekaya soruyoruz
+                    try:
+                        response = client.models.generate_content(
+                            model='gemini-2.5-flash',
+                            contents=soru
+                        )
+                        cevap_metni = response.text
+                    except Exception as e:
+                        cevap_metni = f"Bot cevap verirken bir hata çıktı kanka: {e}"
+
+                # Cevabı ekrana bas
+                st.markdown(cevap_metni)
+                
+                # Eğer hoparlör açık ise ses üret (Bunu da Mehmet Emir sesli söylesin)
                 try:
-                    response = client.models.generate_content(
-                        model='gemini-2.5-flash',
-                        contents=soru
-                    )
-                    cevap_metni = response.text
-                    st.markdown(cevap_metni)
-                    
-                    # Eğer hoparlör açık ise ses üret
                     if st.session_state.ses_durumu:
                         tts = gTTS(text=cevap_metni, lang='tr')
                         audio_buffer = io.BytesIO()
@@ -112,6 +124,5 @@ if soru := st.chat_input("Novi AI'a bir şeyler yaz..."):
                             "role": "assistant", 
                             "content": cevap_metni
                         })
-                    
                 except Exception as e:
-                    st.error(f"Bot cevap verirken bir hata çıktı kanka: {e}")
+                    st.error(f"Ses üretilirken hata oluştu: {e}")
