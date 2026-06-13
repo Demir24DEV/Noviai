@@ -14,46 +14,48 @@ ses_acik = st.sidebar.checkbox("🔊 Sesli Yanıt", value=True)
 # API Anahtarı
 api_key = st.secrets.get("GEMINI_API_KEY")
 if not api_key:
-    st.error("API Anahtarı bulunamadı!")
+    st.error("Secrets kısmına GEMINI_API_KEY eklemen lazım kanka!")
     st.stop()
 
-# PRO MODEL AYARI
+# 🎯 GÜNCEL MODEL: Gemini 2.0 Flash
 genai.configure(api_key=api_key)
-# 🎯 Gemini 1.5 Pro modelini burada tanımlıyoruz
-model = genai.GenerativeModel('gemini-1.5-pro')
+model = genai.GenerativeModel('gemini-2.0-flash-exp')
 
+# Sohbet Geçmişi
 if "messages" not in st.session_state: st.session_state.messages = []
 
-st.title("🤖 Novi AI (Pro Sürüm)")
+st.title("🤖 Novi AI")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-if prompt := st.chat_input("Pro sürüm dinliyor..."):
-    st.chat_message("user").markdown(prompt)
+# Giriş Kutusu
+if prompt := st.chat_input("Bir şeyler yaz..."):
+    with st.chat_message("user"):
+        st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     with st.chat_message("assistant"):
-        with st.spinner("Pro zeka çalışıyor..."):
-            if any(x in prompt.lower() for x in ["kim yaptın", "yapımcın kim", "mehmet emir"]):
-                cevap = "Beni dahi yazılımcı Mehmet Emir Akıllı yarattı! 👑"
-            else:
-                try:
-                    # PRO model ile istek atıyoruz
-                    response = model.generate_content(prompt)
-                    cevap = response.text
-                except Exception as e:
-                    cevap = f"Pro model şu an yoğun, bir daha dene kanka. (Hata: {e})"
-            
-            st.markdown(cevap)
-            st.session_state.messages.append({"role": "assistant", "content": cevap})
-            
-            if ses_acik:
-                try:
-                    tts = gTTS(text=cevap, lang='tr')
-                    fp = io.BytesIO()
-                    tts.write_to_fp(fp)
-                    st.audio(fp.getvalue(), format="audio/mp3")
-                except:
-                    pass
+        # Yapımcı Kontrolü
+        if any(x in prompt.lower() for x in ["kim yaptın", "yapımcın kim", "mehmet emir"]):
+            cevap = "Beni dahi yazılımcı Mehmet Emir Akıllı yarattı! 👑"
+        else:
+            try:
+                # Güncel model ile istek
+                cevap = model.generate_content(prompt).text
+            except Exception as e:
+                cevap = "Sunucu şu an çok yoğun, bir daha dene kanka."
+        
+        st.markdown(cevap)
+        st.session_state.messages.append({"role": "assistant", "content": cevap})
+        
+        # Sesli Yanıt
+        if ses_acik:
+            try:
+                tts = gTTS(text=cevap, lang='tr')
+                fp = io.BytesIO()
+                tts.write_to_fp(fp)
+                st.audio(fp.getvalue(), format="audio/mp3")
+            except:
+                pass
