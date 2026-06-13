@@ -5,23 +5,39 @@ import io
 
 # Sayfa Ayarları
 st.set_page_config(page_title="Novi AI", page_icon="🤖")
-st.title("🤖 Novi AI - Dünyaya Açık Yapay Zeka")
 
-# 🔑 İŞTE ARADIĞIN GİRİŞ ŞEYLERİ BURASI (HİBRİT SİSTEM):
+# 👤 SOL TARAF (GİRİŞ ŞEYLERİ VE MENÜ) BURASI kanka:
+st.sidebar.markdown("# 🛠️ Novi AI Kontrol Paneli")
+st.sidebar.image("https://cdn-icons-png.flaticon.com/512/4712/4712035.png", width=100)
+
+# Şifre yönetim sistemi
 API_KEY = ""
-if "GEMINI_API_KEY" in st.secrets:
-    # Eğer Streamlit ayarlarına eklediysen otomatik oradan okur
+if "GEMINI_API_KEY" in st.secrets and st.secrets["GEMINI_API_KEY"] != "":
     API_KEY = st.secrets["GEMINI_API_KEY"]
+    st.sidebar.success("🔑 Durum: Giriş Yapıldı (Kasa Aktif)")
+    st.sidebar.info("🤖 Yapay zeka motoru bağlandı. Sohbet etmeye hazırsın kral!")
 else:
-    # Kasaya eklemediysen sitenin sol tarafında havalı bir giriş kutusu açılır:
+    # Eğer kasada yoksa elinle girmen için kutu açılır
     API_KEY = st.sidebar.text_input(
         "🔑 Gemini API Anahtarını Gir", 
         type="password", 
-        placeholder="AI Studio anahtarını buraya yapıştır şef..."
+        placeholder="AI Studio anahtarını yapıştır..."
     )
-    st.sidebar.warning("🤖 Botun çalışması için buraya API anahtarını girip Enter'a basmalısın kral!")
+    if API_KEY:
+        st.sidebar.success("🎯 Anahtar algılandı! Enter'a basıp sohbete başla.")
+    else:
+        st.sidebar.warning("🤖 Botun çalışması için buraya API anahtarını girip Enter'a basmalısın kral!")
 
-# Gemini Bağlantısı
+st.sidebar.write("---")
+st.sidebar.markdown("### ⚙️ Sistem Özellikleri")
+st.sidebar.write("• Model: `gemini-2.5-flash`")
+st.sidebar.write("• Dil: `Türkçe (tr)`")
+st.sidebar.write("• Seslendirme: `gTTS Aktif`")
+
+# Ana Sayfa Başlığı
+st.title("🤖 Novi AI - Dünyaya Açık Yapay Zeka")
+
+# Gemini Bağlantısı Kurma
 client = None
 if API_KEY:
     try:
@@ -29,7 +45,7 @@ if API_KEY:
     except Exception as e:
         st.error(f"Bağlantı kurulurken hata oluştu: {e}")
 else:
-    st.info("👈 Sitede sohbet edebilmek için sol taraftaki giriş kutusuna API anahtarını yapıştır kanka!")
+    st.info("👈 Sitede sohbet edebilmek için sol taraftaki panelden giriş yapman veya kasaya anahtar eklemen lazım kanka!")
 
 # Hafıza alanlarını açıyoruz
 if "messages" not in st.session_state:
