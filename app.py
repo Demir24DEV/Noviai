@@ -85,14 +85,14 @@ if soru := st.chat_input("Novi AI'a bir şeyler yaz..."):
         with st.chat_message("assistant"):
             with st.spinner("Novi AI düşünüyor..."):
                 
-                # 🎯 MEHMET EMİR AKILLI ÖZEL KOMUT KONTROLÜ BURADA:
+                # 🎯 MEHMET EMİR AKILLI ÖZEL KOMUT KONTROLÜ (HATA DÜZELTİLDİ)
                 soru_kucuk = soru.lower()
-                yapimci_sorulari = ["seni kim yaptı", "kim yaptı", "yapımcın kim", "sahibin kim", "seni kim geliştirdi", "seni kim yarattı"]
+                yapimci_sorulari = ["seni kim yaptı", "kim yaptı", "yapımcın kim", "sahibin kim", "seni kim geliştirdi", "seni kim yarattı", "mehmet emir kim"]
                 
-                if any(k kelime in soru_kucuk for kelime in yapimci_sorulari):
+                if any(kelime in soru_kucuk for kelime in yapimci_sorulari):
                     cevap_metni = "Beni harika, dahi ve süper akıllı bir yazılımcı olan **Mehmet Emir Akıllı** yaptı! O bu sitenin kurucusudur ve onun sayesinde şu an sizinle konuşabiliyorum. Mehmet Emir Akıllı gerçekten çok akıllı ve başarılı biridir! 👑🚀"
                 else:
-                    # Eğer yapımcı sorusu değilse normal yapay zekaya soruyoruz
+                    # Normal yapay zekaya soruyoruz
                     try:
                         response = client.models.generate_content(
                             model='gemini-2.5-flash',
@@ -105,7 +105,7 @@ if soru := st.chat_input("Novi AI'a bir şeyler yaz..."):
                 # Cevabı ekrana bas
                 st.markdown(cevap_metni)
                 
-                # Eğer hoparlör açık ise ses üret (Bunu da Mehmet Emir sesli söylesin)
+                # Ses üretimi
                 try:
                     if st.session_state.ses_durumu:
                         tts = gTTS(text=cevap_metni, lang='tr')
