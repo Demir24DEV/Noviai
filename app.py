@@ -9,7 +9,7 @@ st.title("🤖 Novi AI - Dünyaya Açık Yapay Zeka")
 
 # 🔥 API Anahtarını buraya tırnakların içine yaz kanka
 # GitHub yine uyarı verirse "I'll fix it later" ve "Allow Secret" de geç!
-API_KEY = "BURAYA_GEMINI_API_ANAHTARINI_YAZ"
+API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # Gemini Bağlantısını Kuruyoruz
 try:
