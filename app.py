@@ -3,7 +3,7 @@ import google.generativeai as genai
 from gtts import gTTS
 import io
 
-# Sayfa Yapılandırması
+# Sayfa Ayarları
 st.set_page_config(page_title="Novi AI", page_icon="🤖")
 
 # --- SOL PANEL ---
@@ -14,43 +14,45 @@ ses_acik = st.sidebar.checkbox("🔊 Sesli Yanıt", value=True)
 # API Anahtarı
 api_key = st.secrets.get("GEMINI_API_KEY")
 if not api_key:
-    st.error("Secrets kısmına GEMINI_API_KEY eklemen lazım kanka!")
+    st.error("API Anahtarı bulunamadı!")
     st.stop()
 
-# 🎯 GÜNCEL MODEL: Gemini 2.0 Flash
+# Konfigürasyon
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-2.0-flash-exp')
+# En kararlı model
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-# Sohbet Geçmişi
 if "messages" not in st.session_state: st.session_state.messages = []
 
 st.title("🤖 Novi AI")
 
+# Sohbet geçmişini göster
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.markdown(msg["content"])
 
-# Giriş Kutusu
-if prompt := st.chat_input("Bir şeyler yaz..."):
+# Giriş
+if prompt := st.chat_input("Mesajını yaz..."):
     with st.chat_message("user"):
         st.markdown(prompt)
     st.session_state.messages.append({"role": "user", "content": prompt})
     
     with st.chat_message("assistant"):
-        # Yapımcı Kontrolü
+        # Yapımcıyı tanı
         if any(x in prompt.lower() for x in ["kim yaptın", "yapımcın kim", "mehmet emir"]):
             cevap = "Beni dahi yazılımcı Mehmet Emir Akıllı yarattı! 👑"
         else:
             try:
-                # Güncel model ile istek
-                cevap = model.generate_content(prompt).text
+                # İstek gönder
+                response = model.generate_content(prompt)
+                cevap = response.text
             except Exception as e:
-                cevap = "Sunucu şu an çok yoğun, bir daha dene kanka."
+                cevap = "Şu an sunucu çok yoğun, biraz bekle kanka."
         
         st.markdown(cevap)
         st.session_state.messages.append({"role": "assistant", "content": cevap})
         
-        # Sesli Yanıt
+        # Seslendirme
         if ses_acik:
             try:
                 tts = gTTS(text=cevap, lang='tr')
