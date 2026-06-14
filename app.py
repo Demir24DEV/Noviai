@@ -1,29 +1,18 @@
 import streamlit as st
-import google.generativeai as genai
+import requests
 
-st.set_page_config(page_title="Novi AI", page_icon="🤖")
+st.title("🤖 Novi AI")
 
-# API Anahtarını al
-api_key = st.secrets.get("GEMINI_API_KEY")
-
-if not api_key:
-    st.error("API Anahtarı 'Secrets' kısmında bulunamadı!")
-    st.stop()
-
-# API Yapılandırması
-try:
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
-except Exception as e:
-    st.error(f"API Konfigürasyon hatası: {e}")
-    st.stop()
-
-# Sohbet kısmı
-if prompt := st.chat_input("Bir şeyler yaz..."):
+if prompt := st.chat_input("Mesajını yaz..."):
     st.chat_message("user").markdown(prompt)
     with st.chat_message("assistant"):
         try:
-            response = model.generate_content(prompt)
-            st.markdown(response.text)
-        except Exception as e:
-            st.error(f"Model hatası: {e}")
+            # En basit public API
+            response = requests.get(f"https://api.popcat.xyz/chatbot?msg={prompt}")
+            if response.status_code == 200:
+                cevap = response.json().get('response', 'Hata...')
+                st.markdown(cevap)
+            else:
+                st.write("Sistem şu an meşgul, bir daha dene.")
+        except:
+            st.write("İnternet bağlantısı veya sunucu hatası.")
